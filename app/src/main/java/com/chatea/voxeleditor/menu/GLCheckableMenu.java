@@ -19,7 +19,7 @@ public class GLCheckableMenu extends GLAbstractMenu {
     public boolean tryToPick(float x, float y) {
         // AABB detection.
         if (getX() <= x && x <= getX() + getWidth()
-                && getY() <= y && y <= getY() + getHeight()) {
+                && getY() - getHeight() <= y && y <= getY()) {
             mChecked = !mChecked;
             if (mCallback != null) {
                 mCallback.onCheck(this, mChecked);

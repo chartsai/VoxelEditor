@@ -1,18 +1,17 @@
 package com.chatea.voxeleditor;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.opengl.Matrix;
 import android.util.Log;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.chatea.voxeleditor.utils.GLCamera;
 import com.chatea.voxeleditor.utils.GLViewPort;
+import com.chatea.voxeleditor.widget.Cube;
 
 public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
@@ -26,15 +25,19 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     private EditorRenderer mRenderer;
 
     // control logic
-    public enum ControlMode {
+    public enum Mode {
         None, // init state
         AddBlock,
         BreakBlock,
         Move,
         Rotate
     }
-
-    private ControlMode mMode = ControlMode.None;
+    private ModeActions mCurrentActions;
+    private ModeActions mNoActions;
+    private ModeActions mAddActions;
+    private ModeActions mDragActions;
+    private ModeActions mMoveActions;
+    private ModeActions mBreakActions;
 
     // camera related
     /**
@@ -63,10 +66,6 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     private ScaleGestureDetector mScaleDetector;
     private long mLastScaleTime;
 
-    private int mStatusbarHeight;
-    private int mDeviceWidth;
-    private int mDeviceHeight;
-
     public EditorCore(Context context, EditorGLSurfaceView glSurfaceView) {
         mContext = context;
 
@@ -74,7 +73,7 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
         setupGestureDetector();
 
-        setupDeviceWindowInformation(context);
+        setupActionModes();
     }
 
     private void setupViews(EditorGLSurfaceView glSurfaceView) {
@@ -90,24 +89,218 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         mScaleDetector = new ScaleGestureDetector(mContext, new ScaleListener());
     }
 
-    private void setupDeviceWindowInformation(Context context) {
-        mStatusbarHeight = getStatusBarHeight();
+    private void setupActionModes() {
+        mNoActions = new ModeActions() {
+            @Override
+            public void handleMotionEvent(MotionEvent e) {
+                // only triggerClick, because we still need interaction with Menu.
+                if (e.getPointerCount() > 1) {
+                    return;
+                }
+                float x = e.getX();
+                float y = e.getY();
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        triggerClick(x, y);
+                        refresh();
+                        break;
+                }
+                mPreviousX = x;
+                mPreviousY = y;
+            }
 
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        mDeviceWidth = size.x;
-        mDeviceHeight = size.y;
-    }
+            @Override
+            public void handleClickCube(Cube cube) {
+            }
+        };
 
-    public int getStatusBarHeight() {
-        int result = 0;
-        int resourceId = mContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = mContext.getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
+        mAddActions = new ModeActions() {
+            @Override
+            public void handleMotionEvent(MotionEvent e) {
+                if (e.getPointerCount() > 1) {
+                    mScaleDetector.onTouchEvent(e);
+                    refresh();
+                    return;
+                }
+
+                if (System.currentTimeMillis() - mLastScaleTime < SCALE_INTERVAL) {
+                    // guard condition
+                    return;
+                }
+
+                float x = e.getX();
+                float y = e.getY();
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        triggerClick(x, y);
+                        refresh();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = x - mPreviousX;
+                        float dy = y - mPreviousY;
+                        triggerDrag(dx, dy);
+                        refresh();
+                        break;
+                }
+                mPreviousX = x;
+                mPreviousY = y;
+            }
+
+            @Override
+            public void handleClickCube(Cube cube) {
+                // TODO add cube
+                float[] pickedCenter = cube.getCenter();
+                float pickedX = pickedCenter[0];
+                float pickedY = pickedCenter[1];
+                float pickedZ = pickedCenter[2];
+
+                switch (cube.getLastPickedPlane()) {
+                    case Cube.BACK: {
+                        mVoxelPanel.addCube(pickedX - 1, pickedY, pickedZ);
+                        return;
+                    }
+                    case Cube.FRONT: {
+                        mVoxelPanel.addCube(pickedX + 1, pickedY, pickedZ);
+                        return;
+                    }
+                    case Cube.LEFT: {
+                        mVoxelPanel.addCube(pickedX, pickedY - 1, pickedZ);
+                        return;
+                    }
+                    case Cube.RIGHT: {
+                        mVoxelPanel.addCube(pickedX, pickedY + 1, pickedZ);
+                        return;
+                    }
+                    case Cube.TOP: {
+                        mVoxelPanel.addCube(pickedX, pickedY, pickedZ + 1);
+                        return;
+                    }
+                    case Cube.BOTTOM: {
+                        mVoxelPanel.addCube(pickedX, pickedY, pickedZ - 1);
+                        return;
+                    }
+                    default:
+                        Log.e("TAG", "some error happened when panel pick cube");
+                }
+            }
+        };
+
+        mDragActions = new ModeActions() {
+            @Override
+            public void handleMotionEvent(MotionEvent e) {
+                if (e.getPointerCount() > 1) {
+                    mScaleDetector.onTouchEvent(e);
+                    refresh();
+                    return;
+                }
+
+                if (System.currentTimeMillis() - mLastScaleTime < SCALE_INTERVAL) {
+                    // guard condition
+                    return;
+                }
+
+                float x = e.getX();
+                float y = e.getY();
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        triggerClick(x, y);
+                        refresh();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = x - mPreviousX;
+                        float dy = y - mPreviousY;
+                        triggerDrag(dx, dy);
+                        refresh();
+                        break;
+                }
+                mPreviousX = x;
+                mPreviousY = y;
+            }
+
+            @Override
+            public void handleClickCube(Cube cube) {
+                // do nothing.
+            }
+        };
+
+        mMoveActions = new ModeActions() {
+            @Override
+            public void handleMotionEvent(MotionEvent e) {
+                if (e.getPointerCount() > 1) {
+                    mScaleDetector.onTouchEvent(e);
+                    refresh();
+                    return;
+                }
+
+                if (System.currentTimeMillis() - mLastScaleTime < SCALE_INTERVAL) {
+                    // guard condition
+                    return;
+                }
+                float x = e.getX();
+                float y = e.getY();
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        triggerClick(x, y);
+                        refresh();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = x - mPreviousX;
+                        float dy = y - mPreviousY;
+
+                        // TODO move camera.
+                        triggerMoveCamera(dx, dy);
+
+                        refresh();
+                        break;
+                }
+                mPreviousX = x;
+                mPreviousY = y;
+            }
+
+            @Override
+            public void handleClickCube(Cube cube) {
+                // do nothing.
+            }
+        };
+
+        mBreakActions = new ModeActions() {
+            @Override
+            public void handleMotionEvent(MotionEvent e) {
+                if (e.getPointerCount() > 1) {
+                    mScaleDetector.onTouchEvent(e);
+                    refresh();
+                    return;
+                }
+
+                if (System.currentTimeMillis() - mLastScaleTime < SCALE_INTERVAL) {
+                    // guard condition
+                    return;
+                }
+                float x = e.getX();
+                float y = e.getY();
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        triggerClick(x, y);
+                        refresh();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = x - mPreviousX;
+                        float dy = y - mPreviousY;
+                        triggerDrag(dx, dy);
+                        refresh();
+                        break;
+                }
+                mPreviousX = x;
+                mPreviousY = y;
+            }
+
+            @Override
+            public void handleClickCube(Cube cube) {
+                mVoxelPanel.removeCube(cube);
+            }
+        };
+
+        mCurrentActions = mNoActions;
     }
 
     private void refresh() {
@@ -158,7 +351,8 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
                     pickRay[2] = touchedPoint[2] / touchedPoint[3] - mCamera.eyeZ;
 
                     float[] eyePoint = new float[]{mCamera.eyeX, mCamera.eyeY, mCamera.eyeZ};
-                    mVoxelPanel.pick(eyePoint, pickRay);
+                    // TODO refactor the behavior into this.
+                    mVoxelPanel.pick(mCurrentActions, eyePoint, pickRay);
                 }
             }
             mCheckPick = false;
@@ -169,44 +363,15 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         mGLSurfaceView.requestRender();
     }
 
-    public void sendTouchEvent(MotionEvent e) {
-
-        if (e.getPointerCount() > 1) {
-            mScaleDetector.onTouchEvent(e);
-            refresh();
-            return;
-        }
-
-        if (System.currentTimeMillis() - mLastScaleTime < SCALE_INTERVAL) {
-            // guard condition
-            return;
-        }
-
-        float x = e.getX();
-        float y = e.getY();
-
-        switch (e.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-
-                handleClick(x, y);
-
-                refresh();
-                break;
-            case MotionEvent.ACTION_MOVE:
-                float dx = x - mPreviousX;
-                float dy = y - mPreviousY;
-
-                handleDrag(dx, dy);
-
-                refresh();
-                break;
-        }
-
-        mPreviousX = x;
-        mPreviousY = y;
+    public void processTouchEvent(MotionEvent e) {
+        mCurrentActions.handleMotionEvent(e);
     }
 
-    public void handleClick(float x, float y) {
+    private void triggerMoveCamera(float dx, float dy) {
+        // TODO
+    }
+
+    private void triggerClick(float x, float y) {
         // TODO
         mClickX = x;
         mClickY = y;
@@ -214,7 +379,7 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         mCheckPick = true;
     }
 
-    public void handleDrag(float dx, float dy) {
+    private void triggerDrag(float dx, float dy) {
         mTheta -= MOVEMENT_FACTOR_PHI * dy;
 
         while (mTheta < 0) {
@@ -229,7 +394,7 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         mPhi = mPhi % 360;
     }
 
-    public void handleScale(float scaleFactor) {
+    private void triggerScale(float scaleFactor) {
         mViewDistance *= (1.0f / scaleFactor);
     }
 
@@ -289,17 +454,37 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         mMenuPanel.draw(mMenuProjectionMatrix);
     }
 
+    public void showToast(String str) {
+        Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
+    }
+
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            handleScale(detector.getScaleFactor());
+            triggerScale(detector.getScaleFactor());
             mLastScaleTime = System.currentTimeMillis();
 
             return true;
         }
     }
 
-    public void setMode(ControlMode mode) {
-        mMode = mode;
+    public void setMode(Mode mode) {
+        switch(mode) {
+            case AddBlock:
+                mCurrentActions = mAddActions;
+                break;
+            case Rotate:
+                mCurrentActions = mDragActions;
+                break;
+            case Move:
+                mCurrentActions = mMoveActions;
+                break;
+            case BreakBlock:
+                mCurrentActions = mBreakActions;
+                break;
+            case None:
+                mCurrentActions = mNoActions;
+                break;
+        }
     }
 }

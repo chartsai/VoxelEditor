@@ -18,7 +18,7 @@ public class GLClickableMenu extends GLAbstractMenu {
     public boolean tryToPick(float x, float y) {
         // AABB detection.
         if (getX() <= x && x <= getX() + getWidth()
-                && getY() <= y && y <= getY() + getHeight()) {
+                && getY() - getHeight() <= y && y <= getY()) {
             if (mCallback != null) {
                 mCallback.onClick(this);
             }

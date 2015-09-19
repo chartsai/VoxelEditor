@@ -38,7 +38,7 @@ public class GLSelectableMenu extends GLAbstractMenu {
     public boolean tryToPick(float x, float y) {
         // AABB detection.
         if (getX() <= x && x <= getX() + getWidth()
-                && getY() <= y && y <= getY() + getHeight()) {
+                && getY() - getHeight() <= y && y <= getY()) {
             if (!mSelected) {
                 // only do select when it has not been selected.
                 select();

@@ -64,7 +64,7 @@ public class VoxelPanel implements IRenderable {
         }
     }
 
-    public void pick(float[] eye, float[] ray) {
+    public void pick(ModeActions actions, float[] eye, float[] ray) {
         if (System.currentTimeMillis() - mLastPickTime < PICK_INTERVAL) {
             return;
         }
@@ -91,39 +91,7 @@ public class VoxelPanel implements IRenderable {
 
         mLastPickTime = System.currentTimeMillis();
 
-        float[] pickedCenter = lastPickedCube.getCenter();
-        float pickedX = pickedCenter[0];
-        float pickedY = pickedCenter[1];
-        float pickedZ = pickedCenter[2];
-
-        switch (lastPickedCube.getLastPickedPlane()) {
-            case Cube.BACK: {
-                addCube(pickedX - 1, pickedY, pickedZ);
-                return;
-            }
-            case Cube.FRONT: {
-                addCube(pickedX + 1, pickedY, pickedZ);
-                return;
-            }
-            case Cube.LEFT: {
-                addCube(pickedX, pickedY - 1, pickedZ);
-                return;
-            }
-            case Cube.RIGHT: {
-                addCube(pickedX, pickedY + 1, pickedZ);
-                return;
-            }
-            case Cube.TOP: {
-                addCube(pickedX, pickedY, pickedZ + 1);
-                return;
-            }
-            case Cube.BOTTOM: {
-                addCube(pickedX, pickedY, pickedZ - 1);
-                return;
-            }
-            default:
-                Log.e("TAG", "some error happened when panel pick cube");
-        }
+        actions.handleClickCube(lastPickedCube);
     }
 
     /**
@@ -132,12 +100,20 @@ public class VoxelPanel implements IRenderable {
      * @param y
      * @param z
      */
-    private void addCube(float x, float y, float z) {
+    public void addCube(float x, float y, float z) {
         Log.d("TAG", "add cube at (" + x + "," + y + "," + z + ")");
         Cube cube = new Cube();
         cube.setCenter((int) x, (int) y, (int) z);
         cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         mCubes.add(cube);
+    }
+
+    public void removeCube(Cube cube) {
+        if (mCubes.size() == 1) {
+            mCore.showToast("You must have at least one voxel!");
+            return;
+        }
+        mCubes.remove(cube);
     }
 }

@@ -29,7 +29,7 @@ public class EditorGLSurfaceView extends GLSurfaceView {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        mCore.sendTouchEvent(e);
+        mCore.processTouchEvent(e);
         return true;
     }
 }

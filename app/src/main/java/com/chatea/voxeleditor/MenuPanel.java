@@ -52,7 +52,7 @@ public class MenuPanel implements IRenderable {
         addVoxel.setOnSelectCallback(new GLSelectableMenu.OnSelectCallback() {
             @Override
             public void onSelected(GLSelectableMenu menu) {
-                mCore.setMode(EditorCore.ControlMode.AddBlock);
+                mCore.setMode(EditorCore.Mode.AddBlock);
 
                 dragPanel.setSelection(false);
                 movePanel.setSelection(false);
@@ -63,7 +63,7 @@ public class MenuPanel implements IRenderable {
         dragPanel.setOnSelectCallback(new GLSelectableMenu.OnSelectCallback() {
             @Override
             public void onSelected(GLSelectableMenu menu) {
-                mCore.setMode(EditorCore.ControlMode.Rotate);
+                mCore.setMode(EditorCore.Mode.Rotate);
 
                 addVoxel.setSelection(false);
                 movePanel.setSelection(false);
@@ -74,7 +74,7 @@ public class MenuPanel implements IRenderable {
         movePanel.setOnSelectCallback(new GLSelectableMenu.OnSelectCallback() {
             @Override
             public void onSelected(GLSelectableMenu menu) {
-                mCore.setMode(EditorCore.ControlMode.Move);
+                mCore.setMode(EditorCore.Mode.Move);
 
                 addVoxel.setSelection(false);
                 dragPanel.setSelection(false);
@@ -85,7 +85,7 @@ public class MenuPanel implements IRenderable {
         breakVoxel.setOnSelectCallback(new GLSelectableMenu.OnSelectCallback() {
             @Override
             public void onSelected(GLSelectableMenu menu) {
-                mCore.setMode(EditorCore.ControlMode.BreakBlock);
+                mCore.setMode(EditorCore.Mode.BreakBlock);
 
                 addVoxel.setSelection(false);
                 dragPanel.setSelection(false);

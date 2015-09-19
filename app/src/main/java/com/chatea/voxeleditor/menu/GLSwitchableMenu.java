@@ -52,7 +52,7 @@ public class GLSwitchableMenu extends GLAbstractMenu {
     public boolean tryToPick(float x, float y) {
         // AABB detection.
         if (getX() <= x && x <= getX() + getWidth()
-                && getY() <= y && y <= getY() + getHeight()) {
+                && getY() - getHeight() <= y && y <= getY()) {
             toggle();
             return true;
         }
