@@ -97,6 +97,8 @@ public class MenuPanel implements IRenderable {
         mMenus.add(dragPanel);
         mMenus.add(movePanel);
         mMenus.add(breakVoxel);
+
+        addVoxel.select();g
     }
 
     @Override
