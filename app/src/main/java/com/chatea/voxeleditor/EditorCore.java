@@ -1,11 +1,15 @@
 package com.chatea.voxeleditor;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.opengl.Matrix;
+import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.WindowManager;
 
 import com.chatea.voxeleditor.utils.GLCamera;
 import com.chatea.voxeleditor.utils.GLViewPort;
@@ -42,9 +46,6 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     private float mTheta = 90;
     private float mPhi = 0;
 
-    private float mProjectionWidth;
-    private float mProjectionHeight;
-
     private float[] mViewMatrix = new float[16];
     private float[] mProjectionMatrix = new float[16];
     private float[] mMenuProjectionMatrix = new float[16];
@@ -62,12 +63,18 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     private ScaleGestureDetector mScaleDetector;
     private long mLastScaleTime;
 
+    private int mStatusbarHeight;
+    private int mDeviceWidth;
+    private int mDeviceHeight;
+
     public EditorCore(Context context, EditorGLSurfaceView glSurfaceView) {
         mContext = context;
 
         setupViews(glSurfaceView);
 
         setupGestureDetector();
+
+        setupDeviceWindowInformation(context);
     }
 
     private void setupViews(EditorGLSurfaceView glSurfaceView) {
@@ -81,6 +88,26 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
     private void setupGestureDetector() {
         mScaleDetector = new ScaleGestureDetector(mContext, new ScaleListener());
+    }
+
+    private void setupDeviceWindowInformation(Context context) {
+        mStatusbarHeight = getStatusBarHeight();
+
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        mDeviceWidth = size.x;
+        mDeviceHeight = size.y;
+    }
+
+    public int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = mContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = mContext.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 
     private void refresh() {
@@ -101,7 +128,16 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         if (mCheckPick) {
             // check menu first.
             boolean pickMenu = false;
-            // TODO implement this
+            float menuX = mClickX * MenuPanel.MENU_PANEL_WIDTH / mViewPort.width;
+            // the y is inverse in GLMenu and MotionEvent coordinate
+            // y in GL = real pixel number * (GLUnit / real pixel GL used)
+            float menuY = (mViewPort.height - mClickY)
+                    * MenuPanel.MENU_PANEL_HEIGHT / mViewPort.height;
+
+            Log.d("TAG", "mViewPort.height - mClickY=" + (mViewPort.height - mClickY)
+                    + ", " + "mClickY=" + mClickY + ", menuY=" + menuY);
+
+            pickMenu = mMenuPanel.pick(menuX, menuY);
 
             if (!pickMenu) {
                 // do ray-picking.
@@ -236,9 +272,6 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
                 0, MenuPanel.MENU_PANEL_WIDTH,
                 0, MenuPanel.MENU_PANEL_HEIGHT,
                 -1, 1);
-
-        mProjectionWidth = 2 * ratio;
-        mProjectionHeight = 2 * 1;
 
         refresh();
     }

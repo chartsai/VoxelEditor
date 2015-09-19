@@ -1,4 +1,4 @@
-package com.chatea.voxeleditor;
+package com.chatea.voxeleditor.menu;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,12 +7,14 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
+import com.chatea.voxeleditor.EditorRenderer;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-public class GLMenu {
+public abstract class GLAbstractMenu implements GLMenu {
 
     private static final String vertexShaderCode =
             "uniform mat4 uMVPMatrix;" +
@@ -54,7 +56,7 @@ public class GLMenu {
 
     private int[] mTextureId;
 
-    public GLMenu(Context context, int resourceId, float x, float y, float width, float height) {
+    public GLAbstractMenu(Context context, int resourceId, float x, float y, float width, float height) {
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId);
         if (bitmap != null) {
             setup(bitmap, width, height);
