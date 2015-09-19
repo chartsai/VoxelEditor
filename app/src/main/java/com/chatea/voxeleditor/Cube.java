@@ -1,14 +1,13 @@
 package com.chatea.voxeleditor;
 
-import android.opengl.GLES20;
+import android.opengl.Matrix;
 import android.util.Log;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
-
-public class GLCube implements IPickable, IRenderable {
+/**
+ * TODO enum the face, change get triangle coordinate function.
+ *
+ */
+public class Cube implements IPickable {
 
     public static final float EDGE_LENGTH = 1.0f;
 
@@ -38,14 +37,11 @@ public class GLCube implements IPickable, IRenderable {
      */
     public static final int BACK = 5;
 
-    private FloatBuffer vertexBuffer;
-    private ShortBuffer drawListBuffer;
-
     private float[] mCenter = {0f, 0f, 0f};
 
     // number of coordinates per vertex in this array
-    private static final int COORDS_PER_VERTEX = 3;
     private static final float HALF_EDGE = EDGE_LENGTH / 2;
+
     private float mCoords[] = {
             HALF_EDGE, -HALF_EDGE, HALF_EDGE,   // front top left
             HALF_EDGE, -HALF_EDGE, -HALF_EDGE,  // front bottom left
@@ -57,7 +53,7 @@ public class GLCube implements IPickable, IRenderable {
             -HALF_EDGE, HALF_EDGE, HALF_EDGE,   // back top right
     };
 
-    private short drawOrder[] = {
+    private short mDrawOrder[] = {
             0, 1, 2, 0, 2, 3,  // order to draw front
             4, 0, 3, 4, 3, 7,  // order to draw top
             4, 5, 1, 4, 1, 0,  // order to draw left
@@ -69,45 +65,10 @@ public class GLCube implements IPickable, IRenderable {
     // Set color with red, green, blue and alpha (opacity) values
     private float mColor[] = { 0.1f, 0.6f, 0.5f, 1.0f };
 
-    private final int mProgram;
-
     private int mLastPickedPlane = NONE;
 
-    private final String vertexShaderCode =
-            "uniform mat4 uMVPMatrix;" +
-            "attribute vec4 vPosition;" +
-            "void main() {" +
-            "  gl_Position = uMVPMatrix * vPosition;" +
-            "}";
-
-    private final String fragmentShaderCode =
-            "precision mediump float;" +
-            "uniform vec4 vColor;" +
-            "void main() {" +
-            "  gl_FragColor = vColor;" +
-            "}";
-
-    public GLCube() {
+    public Cube() {
         setCenter(0, 0, 0);
-
-        // initialize byte buffer for the draw list
-        ByteBuffer dlb = ByteBuffer.allocateDirect(
-                // (# of coordinate values * 2 bytes per short)
-                drawOrder.length * 2);
-        dlb.order(ByteOrder.nativeOrder());
-        drawListBuffer = dlb.asShortBuffer();
-        drawListBuffer.put(drawOrder);
-        drawListBuffer.position(0);
-
-        int vertexShader = EditorRenderer.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
-        int fragmentShader = EditorRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
-
-        mProgram = GLES20.glCreateProgram();
-
-        GLES20.glAttachShader(mProgram, vertexShader);
-        GLES20.glAttachShader(mProgram, fragmentShader);
-
-        GLES20.glLinkProgram(mProgram);
     }
 
     public void setCenter(float x, float y, float z) {
@@ -116,16 +77,6 @@ public class GLCube implements IPickable, IRenderable {
             mCoords[i + 1] = mCoords[i + 1] - mCenter[1] + y;
             mCoords[i + 2] = mCoords[i + 2] - mCenter[2] + z;
         }
-
-        // initialize vertex byte buffer for shape coordinates
-        ByteBuffer bb = ByteBuffer.allocateDirect(
-                // (# of coordinate values * 4 bytes per float)
-                mCoords.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-        vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(mCoords);
-        vertexBuffer.position(0);
-
         mCenter[0] = x;
         mCenter[1] = y;
         mCenter[2] = z;
@@ -138,32 +89,22 @@ public class GLCube implements IPickable, IRenderable {
         mColor[3] = a;
     }
 
-    @Override
-    public void draw(float[] mvpMatrix) {
-        Log.d("TAG", "Start draw GLCube");
-        GLES20.glUseProgram(mProgram);
+    public void draw(float[] vpMatrix, GLCubeShader shader) {
+        float[] mvpMatrix = new float[16];
 
-        int mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
-        GLES20.glEnableVertexAttribArray(mPositionHandle);
-        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
-                GLES20.GL_FLOAT, false, 3 * 4, vertexBuffer);
+        float[] moduleMatrix = new float[16];
+        Matrix.setIdentityM(moduleMatrix, 0);
+        Matrix.translateM(moduleMatrix, 0, mCenter[0], mCenter[1], mCenter[2]);
+        Matrix.multiplyMM(mvpMatrix, 0, vpMatrix, 0, moduleMatrix, 0);
 
-        int mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
-
-        int mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
-        GLES20.glUniform4fv(mColorHandle, 1, mColor, 0);
-
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, 3 * 2 * 6, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
-
-        GLES20.glDisableVertexAttribArray(mPositionHandle);
+        shader.draw(mvpMatrix, mColor);
     }
 
-    private float[] getPointCoordinate(int index) {
+    private float[] getTriangleCoordinate(int number) {
         float[] coordinates = new float[3];
-        coordinates[0] = mCoords[index * 3];
-        coordinates[1] = mCoords[index * 3 + 1];
-        coordinates[2] = mCoords[index * 3 + 2];
+        coordinates[0] = mCoords[number * 3];
+        coordinates[1] = mCoords[number * 3 + 1];
+        coordinates[2] = mCoords[number * 3 + 2];
         return coordinates;
     }
 
@@ -172,10 +113,10 @@ public class GLCube implements IPickable, IRenderable {
         float[] nearestPoint = null;
         float currentDistSquare = -1;
         int pickedPlane = -1;
-        for (int i = 0; i < drawOrder.length; i += 3) { // check the square one by one.
-            float[] a = getPointCoordinate(drawOrder[i]);
-            float[] b = getPointCoordinate(drawOrder[i + 1]);
-            float[] c = getPointCoordinate(drawOrder[i + 2]);
+        for (int i = 0; i < mDrawOrder.length; i += 3) { // check the triangle one by one.
+            float[] a = getTriangleCoordinate(mDrawOrder[i]);
+            float[] b = getTriangleCoordinate(mDrawOrder[i + 1]);
+            float[] c = getTriangleCoordinate(mDrawOrder[i + 2]);
             float[] crossPoint = Utils.getLineTriangleCrossPoint(eye, pickRay, a, b, c);
 
             if (crossPoint != null) {

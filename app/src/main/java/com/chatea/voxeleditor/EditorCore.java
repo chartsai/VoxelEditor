@@ -4,12 +4,11 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.opengl.Matrix;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class EditorCore implements EditorRenderer.RenderController {
 
@@ -36,7 +35,7 @@ public class EditorCore implements EditorRenderer.RenderController {
     private float[] mProjectionMatrix = new float[16];
 
     // Renderable objects
-    private List<IRenderable> mRenderableObjects = new ArrayList<>();
+    private Set<IRenderable> mRenderableObjects = new HashSet<>();
     private VoxelPanel mVoxelPanel;
 
     // Touch events.
@@ -195,8 +194,6 @@ public class EditorCore implements EditorRenderer.RenderController {
         mCamera.upX = 0f;
         mCamera.upY = 0f;
         mCamera.upZ = mTheta % 360 < 180 ? 1.0f : -1.0f;
-
-        Log.d("TAG", "eye=(" + mCamera.eyeX + "," + mCamera.eyeY + "," + mCamera.eyeZ);
     }
 
     @Override
@@ -227,7 +224,7 @@ public class EditorCore implements EditorRenderer.RenderController {
     }
 
     @Override
-    public List<IRenderable> getRenderableObjects() {
+    public Set<IRenderable> getRenderableObjects() {
         return mRenderableObjects;
     }
 

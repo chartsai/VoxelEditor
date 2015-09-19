@@ -4,7 +4,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -52,6 +52,8 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         GLES20.glDepthMask(true);
 
+        createShaders();
+
         /**
          * Important!!!
          * onSurfaceCreated is run in GL Thread, so any object with shader should
@@ -60,6 +62,10 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
          * Thus, add a callback function to create renderable objects in EditorCor.
          */
         mController.createRenderObject();
+    }
+
+    private void createShaders() {
+
     }
 
     @Override
@@ -75,14 +81,14 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
 
-        float[] mvpMatrix = new float[16];
+        float[] vpMatrix = new float[16];
         float[] projectionMatrix = mController.getProjectionMatrix();
         float[] viewMatrix = mController.getViewMatrix();
 
-        Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+        Matrix.multiplyMM(vpMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
         for (IRenderable renderable: mController.getRenderableObjects()) {
-            renderable.draw(mvpMatrix);
+            renderable.draw(vpMatrix);
         }
     }
 
@@ -94,6 +100,6 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         float[] getProjectionMatrix();
         float[] getViewMatrix();
 
-        List<IRenderable> getRenderableObjects();
+        Set<IRenderable> getRenderableObjects();
     }
 }

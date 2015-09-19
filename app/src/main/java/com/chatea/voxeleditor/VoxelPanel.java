@@ -2,8 +2,8 @@ package com.chatea.voxeleditor;
 
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class VoxelPanel implements IRenderable {
 
@@ -16,7 +16,8 @@ public class VoxelPanel implements IRenderable {
     public int mYSize;
     public int mZSize;
 
-    public List<GLCube> mCubes;
+    private GLCubeShader mCubeShader;
+    public Set<Cube> mCubes;
 
     private long mLastPickTime = 0;
 
@@ -25,9 +26,11 @@ public class VoxelPanel implements IRenderable {
         mYSize = ySize;
         mZSize = zSize;
 
-        mCubes = new ArrayList<>(xSize * ySize * zSize);
+        mCubes = new HashSet<>(xSize * ySize * zSize);
 
-        GLCube cube = new GLCube();
+        mCubeShader = new GLCubeShader();
+
+        Cube cube = new Cube();
         cube.setCenter(0, 0, 0);
         cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -35,12 +38,12 @@ public class VoxelPanel implements IRenderable {
     }
 
     @Override
-    public void draw(float[] mvpMatrix) {
+    public void draw(float[] vpMatrix) {
 
         // TODO draw coordinate lines.
 
-        for (GLCube cube: mCubes) {
-            cube.draw(mvpMatrix);
+        for (Cube cube: mCubes) {
+            cube.draw(vpMatrix, mCubeShader);
         }
     }
 
@@ -49,10 +52,10 @@ public class VoxelPanel implements IRenderable {
             return;
         }
 
-        GLCube lastPickedCube = null;
+        Cube lastPickedCube = null;
         float lastDistanceSquare = Float.MAX_VALUE;
 
-        for (GLCube cube: mCubes) {
+        for (Cube cube: mCubes) {
             float[] pickedPoint = new float[3];
             if (cube.isPicked(eye, ray, pickedPoint)) {
 
@@ -78,44 +81,47 @@ public class VoxelPanel implements IRenderable {
         float pickedZ = pickedCenter[2];
 
         switch (lastPickedCube.getLastPickedPlane()) {
-            case GLCube.BACK: {
-                GLCube cube = new GLCube();
-                cube.setCenter(pickedX - 1, pickedY, pickedZ);
-                mCubes.add(cube);
+            case Cube.BACK: {
+                addCube(pickedX - 1, pickedY, pickedZ);
                 return;
             }
-            case GLCube.FRONT: {
-                GLCube cube = new GLCube();
-                cube.setCenter(pickedX + 1, pickedY, pickedZ);
-                mCubes.add(cube);
+            case Cube.FRONT: {
+                addCube(pickedX + 1, pickedY, pickedZ);
                 return;
             }
-            case GLCube.LEFT: {
-                GLCube cube = new GLCube();
-                cube.setCenter(pickedX, pickedY - 1, pickedZ);
-                mCubes.add(cube);
+            case Cube.LEFT: {
+                addCube(pickedX, pickedY - 1, pickedZ);
                 return;
             }
-            case GLCube.RIGHT: {
-                GLCube cube = new GLCube();
-                cube.setCenter(pickedX, pickedY + 1, pickedZ);
-                mCubes.add(cube);
+            case Cube.RIGHT: {
+                addCube(pickedX, pickedY + 1, pickedZ);
                 return;
             }
-            case GLCube.TOP: {
-                GLCube cube = new GLCube();
-                cube.setCenter(pickedX, pickedY, pickedZ + 1);
-                mCubes.add(cube);
+            case Cube.TOP: {
+                addCube(pickedX, pickedY, pickedZ + 1);
                 return;
             }
-            case GLCube.BOTTOM: {
-                GLCube cube = new GLCube();
-                cube.setCenter(pickedX, pickedY, pickedZ - 1);
-                mCubes.add(cube);
+            case Cube.BOTTOM: {
+                addCube(pickedX, pickedY, pickedZ - 1);
                 return;
             }
             default:
                 Log.e("TAG", "some error happened when panel pick cube");
         }
+    }
+
+    /**
+     * The x, y, z *MUST* be integer.
+     * @param x
+     * @param y
+     * @param z
+     */
+    private void addCube(float x, float y, float z) {
+        Log.d("TAG", "add cube at (" + x + "," + y + "," + z + ")");
+        Cube cube = new Cube();
+        cube.setCenter((int)x, (int)y, (int)z);
+        cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        mCubes.add(cube);
     }
 }
