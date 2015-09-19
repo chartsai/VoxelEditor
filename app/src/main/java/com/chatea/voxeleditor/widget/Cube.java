@@ -1,7 +1,11 @@
-package com.chatea.voxeleditor;
+package com.chatea.voxeleditor.widget;
 
 import android.opengl.Matrix;
 import android.util.Log;
+
+import com.chatea.voxeleditor.IPickable;
+import com.chatea.voxeleditor.Utils;
+import com.chatea.voxeleditor.shader.GLCubeShader;
 
 /**
  * TODO enum the face, change get triangle coordinate function.

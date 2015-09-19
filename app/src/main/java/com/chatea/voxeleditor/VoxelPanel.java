@@ -2,6 +2,11 @@ package com.chatea.voxeleditor;
 
 import android.util.Log;
 
+import com.chatea.voxeleditor.shader.GLCubeShader;
+import com.chatea.voxeleditor.shader.GLLineShader;
+import com.chatea.voxeleditor.widget.Cube;
+import com.chatea.voxeleditor.widget.Line;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +22,10 @@ public class VoxelPanel implements IRenderable {
     public int mZSize;
 
     private GLCubeShader mCubeShader;
-    public Set<Cube> mCubes;
+    private Set<Cube> mCubes;
+
+    private GLLineShader mLineShader;
+    private Set<Line> mLines;
 
     private long mLastPickTime = 0;
 
@@ -28,13 +36,14 @@ public class VoxelPanel implements IRenderable {
 
         mCubes = new HashSet<>(xSize * ySize * zSize);
 
-        mCubeShader = new GLCubeShader();
-
+        // Panel should has a started Cube at the center.
         Cube cube = new Cube();
         cube.setCenter(0, 0, 0);
         cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-
         mCubes.add(cube);
+
+        mCubeShader = new GLCubeShader();
+        mLineShader = new GLLineShader();
     }
 
     @Override
@@ -44,6 +53,10 @@ public class VoxelPanel implements IRenderable {
 
         for (Cube cube: mCubes) {
             cube.draw(vpMatrix, mCubeShader);
+        }
+
+        for (Line line: mLines) {
+            line.draw(vpMatrix, mLineShader);
         }
     }
 
@@ -119,7 +132,7 @@ public class VoxelPanel implements IRenderable {
     private void addCube(float x, float y, float z) {
         Log.d("TAG", "add cube at (" + x + "," + y + "," + z + ")");
         Cube cube = new Cube();
-        cube.setCenter((int)x, (int)y, (int)z);
+        cube.setCenter((int) x, (int) y, (int) z);
         cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         mCubes.add(cube);

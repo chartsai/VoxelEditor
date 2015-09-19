@@ -7,6 +7,9 @@ import android.opengl.Matrix;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
+import com.chatea.voxeleditor.utils.GLCamera;
+import com.chatea.voxeleditor.utils.GLViewPort;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -207,8 +210,10 @@ public class EditorCore implements EditorRenderer.RenderController {
     public void setViewPort(GLViewPort viewPort) {
         this.mViewPort = viewPort;
 
+        final float viewDepth = 30;
+
         float ratio = (float) viewPort.width / viewPort.height;
-        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 1, 9);
+        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 1, viewDepth);
 
         refresh();
     }

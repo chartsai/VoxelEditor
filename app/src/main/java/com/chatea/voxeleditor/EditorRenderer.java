@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import com.chatea.voxeleditor.utils.GLViewPort;
+
 import java.util.Set;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -52,7 +54,8 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         GLES20.glDepthMask(true);
 
-        createShaders();
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
         /**
          * Important!!!
@@ -62,10 +65,6 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
          * Thus, add a callback function to create renderable objects in EditorCor.
          */
         mController.createRenderObject();
-    }
-
-    private void createShaders() {
-
     }
 
     @Override

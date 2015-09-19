@@ -1,4 +1,4 @@
-package com.chatea.voxeleditor;
+package com.chatea.voxeleditor.utils;
 
 public class Vector4 {
     float x;

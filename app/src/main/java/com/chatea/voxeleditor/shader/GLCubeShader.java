@@ -1,6 +1,8 @@
-package com.chatea.voxeleditor;
+package com.chatea.voxeleditor.shader;
 
 import android.opengl.GLES20;
+
+import com.chatea.voxeleditor.EditorRenderer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
