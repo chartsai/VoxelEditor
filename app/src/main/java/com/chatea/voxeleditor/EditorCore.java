@@ -10,10 +10,7 @@ import android.view.ScaleGestureDetector;
 import com.chatea.voxeleditor.utils.GLCamera;
 import com.chatea.voxeleditor.utils.GLViewPort;
 
-import java.util.HashSet;
-import java.util.Set;
-
-public class EditorCore implements EditorRenderer.RenderController {
+public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
     private static final float MOVEMENT_FACTOR_THETA = 180.0f / 320;
     private static final float MOVEMENT_FACTOR_PHI = 90.0f / 320;
@@ -34,12 +31,16 @@ public class EditorCore implements EditorRenderer.RenderController {
     private float mTheta = 90;
     private float mPhi = 0;
 
+    private float mProjectionWidth;
+    private float mProjectionHeight;
+
     private float[] mViewMatrix = new float[16];
     private float[] mProjectionMatrix = new float[16];
+    private float[] mMenuProjectionMatrix = new float[16];
 
     // Renderable objects
-    private Set<IRenderable> mRenderableObjects = new HashSet<>();
     private VoxelPanel mVoxelPanel;
+    private MenuPanel mMenuPanel;
 
     // Touch events.
     private boolean mCheckPick;
@@ -87,25 +88,31 @@ public class EditorCore implements EditorRenderer.RenderController {
                 mCamera.upX, mCamera.upY, mCamera.upZ);
 
         if (mCheckPick) {
-            // do ray-picking.
-            float[] touchedPoint = new float[4];
-            float[] pickRay = new float[3];
+            // check menu first.
+            boolean pickMenu = false;
+            // TODO implement this
 
-            float glWindowX = mClickX;
-            float glWindowY = mViewPort.height - mClickY;
+            if (!pickMenu) {
+                // do ray-picking.
+                float[] touchedPoint = new float[4];
+                float[] pickRay = new float[3];
 
-            // winZ = 0 is the nearest plan, winZ = 1 is the farest plan.
-            GLU.gluUnProject(glWindowX, glWindowY, 1,
-                    mViewMatrix, 0, mProjectionMatrix, 0, mViewPort.toIntArray(), 0, touchedPoint, 0);
+                float glWindowX = mClickX;
+                float glWindowY = mViewPort.height - mClickY;
 
-            if (touchedPoint[3] != 0) {
+                // winZ = 0 is the nearest plan, winZ = 1 is the farest plan.
+                GLU.gluUnProject(glWindowX, glWindowY, 1,
+                        mViewMatrix, 0, mProjectionMatrix, 0, mViewPort.toIntArray(), 0, touchedPoint, 0);
 
-                pickRay[0] = touchedPoint[0] / touchedPoint[3] - mCamera.eyeX;
-                pickRay[1] = touchedPoint[1] / touchedPoint[3] - mCamera.eyeY;
-                pickRay[2] = touchedPoint[2] / touchedPoint[3] - mCamera.eyeZ;
+                if (touchedPoint[3] != 0) {
 
-                float[] eyePoint = new float[] {mCamera.eyeX, mCamera.eyeY, mCamera.eyeZ};
-                mVoxelPanel.pick(eyePoint, pickRay);
+                    pickRay[0] = touchedPoint[0] / touchedPoint[3] - mCamera.eyeX;
+                    pickRay[1] = touchedPoint[1] / touchedPoint[3] - mCamera.eyeY;
+                    pickRay[2] = touchedPoint[2] / touchedPoint[3] - mCamera.eyeZ;
+
+                    float[] eyePoint = new float[]{mCamera.eyeX, mCamera.eyeY, mCamera.eyeZ};
+                    mVoxelPanel.pick(eyePoint, pickRay);
+                }
             }
             mCheckPick = false;
         }
@@ -199,11 +206,18 @@ public class EditorCore implements EditorRenderer.RenderController {
         mCamera.upZ = mTheta % 360 < 180 ? 1.0f : -1.0f;
     }
 
+    public float getProjectionWidth() {
+        return mProjectionWidth;
+    }
+
+    public float getProjectionHeight() {
+        return mProjectionHeight;
+    }
+
     @Override
     public void createRenderObject() {
-        mVoxelPanel = new VoxelPanel(10, 10, 10);
-
-        mRenderableObjects.add(mVoxelPanel);
+        mVoxelPanel = new VoxelPanel(this, 10, 10, 10);
+        mMenuPanel = new MenuPanel(this, mContext);
     }
 
     @Override
@@ -215,22 +229,25 @@ public class EditorCore implements EditorRenderer.RenderController {
         float ratio = (float) viewPort.width / viewPort.height;
         Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 1, viewDepth);
 
+        Matrix.orthoM(mMenuProjectionMatrix, 0, -ratio, ratio, -1, 1, -1, 1);
+
+        mProjectionWidth = 2 * ratio;
+        mProjectionHeight = 2 * 1;
+
         refresh();
     }
 
     @Override
-    public float[] getProjectionMatrix() {
-        return mProjectionMatrix;
+    public void drawPanel() {
+        float[] vpMatrix = new float[16];
+        Matrix.multiplyMM(vpMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+        mVoxelPanel.draw(vpMatrix);
     }
 
     @Override
-    public float[] getViewMatrix() {
-        return mViewMatrix;
-    }
-
-    @Override
-    public Set<IRenderable> getRenderableObjects() {
-        return mRenderableObjects;
+    public void drawMenu() {
+        // Menu used identical View Matrix so projectionMatrix is vpMatrix
+        mMenuPanel.draw(mMenuProjectionMatrix);
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

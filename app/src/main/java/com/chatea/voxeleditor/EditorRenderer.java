@@ -2,21 +2,18 @@ package com.chatea.voxeleditor;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 
 import com.chatea.voxeleditor.utils.GLViewPort;
-
-import java.util.Set;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class EditorRenderer implements GLSurfaceView.Renderer {
 
-    private RenderController mController;
+    private RenderDataMaintainer mDataMaintainer;
 
-    public EditorRenderer(RenderController controller) {
-        mController = controller;
+    public EditorRenderer(RenderDataMaintainer controller) {
+        mDataMaintainer = controller;
     }
 
     /**
@@ -64,7 +61,7 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
          *
          * Thus, add a callback function to create renderable objects in EditorCor.
          */
-        mController.createRenderObject();
+        mDataMaintainer.createRenderObject();
     }
 
     @Override
@@ -72,7 +69,7 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glViewport(0, 0, width, height);
         GLViewPort viewPort = new GLViewPort(0, 0, width, height);
 
-        mController.setViewPort(viewPort);
+        mDataMaintainer.setViewPort(viewPort);
     }
 
     @Override
@@ -80,25 +77,20 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
 
-        float[] vpMatrix = new float[16];
-        float[] projectionMatrix = mController.getProjectionMatrix();
-        float[] viewMatrix = mController.getViewMatrix();
+        mDataMaintainer.drawPanel();
 
-        Matrix.multiplyMM(vpMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-
-        for (IRenderable renderable: mController.getRenderableObjects()) {
-            renderable.draw(vpMatrix);
-        }
+        // disable depth test when draw the menu. (menu should always be the top)
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        mDataMaintainer.drawMenu();
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
     }
 
-    interface RenderController {
+    interface RenderDataMaintainer {
         void createRenderObject();
 
         void setViewPort(GLViewPort viewPort);
 
-        float[] getProjectionMatrix();
-        float[] getViewMatrix();
-
-        Set<IRenderable> getRenderableObjects();
+        void drawPanel();
+        void drawMenu();
     }
 }

@@ -21,6 +21,8 @@ public class VoxelPanel implements IRenderable {
     public int mYSize;
     public int mZSize;
 
+    private EditorCore mCore;
+
     private GLCubeShader mCubeShader;
     private Set<Cube> mCubes;
 
@@ -29,12 +31,15 @@ public class VoxelPanel implements IRenderable {
 
     private long mLastPickTime = 0;
 
-    public VoxelPanel(int xSize, int ySize, int zSize) {
+    public VoxelPanel(EditorCore core, int xSize, int ySize, int zSize) {
+        mCore = core;
+
         mXSize = xSize;
         mYSize = ySize;
         mZSize = zSize;
 
         mCubes = new HashSet<>(xSize * ySize * zSize);
+        mLines = new HashSet<>();
 
         // Panel should has a started Cube at the center.
         Cube cube = new Cube();
@@ -48,7 +53,6 @@ public class VoxelPanel implements IRenderable {
 
     @Override
     public void draw(float[] vpMatrix) {
-
         // TODO draw coordinate lines.
 
         for (Cube cube: mCubes) {
@@ -82,7 +86,6 @@ public class VoxelPanel implements IRenderable {
         }
 
         if (lastPickedCube == null) {
-            Log.d("TAG", "No picked square");
             return;
         }
 
