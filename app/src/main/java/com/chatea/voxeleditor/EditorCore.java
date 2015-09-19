@@ -148,7 +148,6 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
             @Override
             public void handleClickCube(Cube cube) {
-                // TODO add cube
                 float[] pickedCenter = cube.getCenter();
                 float pickedX = pickedCenter[0];
                 float pickedY = pickedCenter[1];
@@ -246,10 +245,7 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
                     case MotionEvent.ACTION_MOVE:
                         float dx = x - mPreviousX;
                         float dy = y - mPreviousY;
-
-                        // TODO move camera.
                         triggerMoveCamera(dx, dy);
-
                         refresh();
                         break;
                 }
@@ -368,11 +364,27 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     }
 
     private void triggerMoveCamera(float dx, float dy) {
-        // TODO
+        // invert the x direction to make mode straight.
+        dx *= 0.01 * -1;
+        dy *= 0.01;
+        float[] invertProject = new float[16];
+        float[] invertView = new float[16];
+        Matrix.invertM(invertProject, 0, mProjectionMatrix, 0);
+        Matrix.invertM(invertView, 0, mViewMatrix, 0);
+
+        float[] resultVector = new float[4];
+        float[] tempVector = new float[4];
+        float[] vector = {dx, dy, 0, 0}; // vector, keep w = 0.
+
+        Matrix.multiplyMV(tempVector, 0, invertProject, 0, vector, 0);
+        Matrix.multiplyMV(resultVector, 0, invertView, 0, tempVector, 0);
+
+        mCamera.centerX += resultVector[0];
+        mCamera.centerY += resultVector[1];
+        mCamera.centerZ += resultVector[2];
     }
 
     private void triggerClick(float x, float y) {
-        // TODO
         mClickX = x;
         mClickY = y;
 
@@ -405,13 +417,13 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         double radianceTheta = theta * Math.PI / 180;
         double radiancePhi = phi * Math.PI / 180;
 
-        mCamera.eyeX = (float) (mViewDistance * Math.sin(radianceTheta) * Math.cos(radiancePhi));
-        mCamera.eyeY = (float) (mViewDistance * Math.sin(radianceTheta) * Math.sin(radiancePhi));
-        mCamera.eyeZ = (float) (mViewDistance * Math.cos(radianceTheta));
+        mCamera.eyeX = (float) (mViewDistance * Math.sin(radianceTheta) * Math.cos(radiancePhi)) + mCamera.centerX;
+        mCamera.eyeY = (float) (mViewDistance * Math.sin(radianceTheta) * Math.sin(radiancePhi)) + mCamera.centerY;
+        mCamera.eyeZ = (float) (mViewDistance * Math.cos(radianceTheta)) + mCamera.centerZ;
 
-        mCamera.centerX = 0f;
-        mCamera.centerY = 0f;
-        mCamera.centerZ = 0f;
+//        mCamera.centerX = 0f;
+//        mCamera.centerY = 0f;
+//        mCamera.centerZ = 0f;
 
         mCamera.upX = 0f;
         mCamera.upY = 0f;
