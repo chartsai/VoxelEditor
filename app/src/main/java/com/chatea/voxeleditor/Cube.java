@@ -5,7 +5,7 @@ import android.util.Log;
 
 /**
  * TODO enum the face, change get triangle coordinate function.
- *
+ * make this class describe all triangle, and make GLCubeShader only draw triangle.
  */
 public class Cube implements IPickable {
 
