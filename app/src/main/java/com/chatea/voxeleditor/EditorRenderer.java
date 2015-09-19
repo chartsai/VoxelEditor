@@ -2,39 +2,26 @@ package com.chatea.voxeleditor;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
 import android.opengl.Matrix;
+
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class EditorRenderer implements GLSurfaceView.Renderer {
-    private static final float MOVEMENT_FACTOR_THETA = 180.0f / 320;
-    private static final float MOVEMENT_FACTOR_PHI = 90.0f / 320;
 
-    private VoxelPanel mPanel;
-    private GLCube mCube;
+    private RenderController mController;
 
-    private int[] mViewPort = new int[4];
-    private float[] mEyePoint = new float[3];
-    private float mViewDistance = 5.0f;
-
-    private float mTheta = 90;
-    private float mPhi = 0;
-
-    // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
-    private final float[] mMVPMatrix = new float[16];
-    private final float[] mProjectionMatrix = new float[16];
-    private final float[] mViewMatrix = new float[16];
-
-    private float mClickX;
-    private float mClickY;
-
-    public EditorRenderer() {
+    public EditorRenderer(RenderController controller) {
+        mController = controller;
     }
 
     /**
-     * Tool used loader
+     * Tool used loader.<br>
+     * The shader should be load in functions of GLSurfaceView.Renderer.<br>
+     * (It's because the shader only can be created with GLContext thread)
+     *
      * @param type GLES20.GL_VERTEX_SHADER, GLES20.GL_FRAGMENT_SHADER
      * @param shaderCode
      * @return
@@ -51,10 +38,11 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+        GLES20.glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
 
         // setup back cull function.
         GLES20.glEnable(GLES20.GL_CULL_FACE);
+        GLES20.glDisable(GLES20.GL_CULL_FACE);
         GLES20.glFrontFace(GLES20.GL_CCW);
         GLES20.glCullFace(GLES20.GL_BACK);
 
@@ -64,18 +52,22 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         GLES20.glDepthMask(true);
 
-        mCube = new GLCube();
-        mPanel = new VoxelPanel(10, 10, 10);
+        /**
+         * Important!!!
+         * onSurfaceCreated is run in GL Thread, so any object with shader should
+         * load shader in functions of GLSurfaceView.Renderer.
+         *
+         * Thus, add a callback function to create renderable objects in EditorCor.
+         */
+        mController.createRenderObject();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
-        mViewPort = new int[] {0, 0, width, height};
+        GLViewPort viewPort = new GLViewPort(0, 0, width, height);
 
-        float ratio = (float) width / height;
-
-        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 1, 9);
+        mController.setViewPort(viewPort);
     }
 
     @Override
@@ -83,73 +75,25 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
 
-        updateEyePosition();
+        float[] mvpMatrix = new float[16];
+        float[] projectionMatrix = mController.getProjectionMatrix();
+        float[] viewMatrix = mController.getViewMatrix();
 
-        Matrix.setLookAtM(mViewMatrix, 0,
-                mEyePoint[0], mEyePoint[1], mEyePoint[2],
-                0f, 0f, 0f,
-                0f, 0f, mTheta % 360 < 180 ? 1.0f : -1.0f);
+        Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-
-        // do ray-picking.
-        float[] touchedPoint = new float[4];
-        float[] pickRay = new float[3];
-
-        float glWindowX = mClickX;
-        float glWindowY = mViewPort[3] - mClickY;
-
-        // winZ = 0 is the nearest plan, winZ = 1 is the farest plan.
-        GLU.gluUnProject(glWindowX, glWindowY, 1, mViewMatrix, 0, mProjectionMatrix, 0, mViewPort, 0, touchedPoint, 0);
-
-        if (touchedPoint[3] != 0) {
-            for (int i = 0; i < 3; i++) {
-                pickRay[i] = touchedPoint[i] / touchedPoint[3] - mEyePoint[i];
-            }
-
-            // TODO do picked.
-//            mPanel.isPicked(mEyePoint, pickRay, null);
+        for (IRenderable renderable: mController.getRenderableObjects()) {
+            renderable.draw(mvpMatrix);
         }
-
-        mPanel.draw(mMVPMatrix);
     }
 
-    public void handleClick(float x, float y) {
-        // TODO
-        mClickX = x;
-        mClickY = y;
-    }
+    interface RenderController {
+        void createRenderObject();
 
-    public void handleDrag(float dx, float dy) {
-        mTheta -= MOVEMENT_FACTOR_PHI * dy;
+        void setViewPort(GLViewPort viewPort);
 
-        while (mTheta < 0) {
-            mTheta += 360;
-        }
-        mTheta = mTheta % 360;
+        float[] getProjectionMatrix();
+        float[] getViewMatrix();
 
-        mPhi -= MOVEMENT_FACTOR_THETA * dx * (mTheta < 180? 1: -1);
-        while (mPhi < 0) {
-            mPhi += 360;
-        }
-        mPhi = mPhi % 360;
-
-        updateEyePosition();
-    }
-
-    public void handleScale(float scaleFactor) {
-        mViewDistance *= (1.0f / scaleFactor);
-        updateEyePosition();
-    }
-
-    private void updateEyePosition() {
-        float theta = mTheta % 360;
-        float phi = mPhi % 360;
-
-        double radianceTheta = theta * Math.PI / 180;
-        double radiancePhi = phi * Math.PI / 180;
-        mEyePoint[0] = (float) (mViewDistance * Math.sin(radianceTheta) * Math.cos(radiancePhi));
-        mEyePoint[1] = (float) (mViewDistance * Math.sin(radianceTheta) * Math.sin(radiancePhi));
-        mEyePoint[2] = (float) (mViewDistance * Math.cos(radianceTheta));
+        List<IRenderable> getRenderableObjects();
     }
 }

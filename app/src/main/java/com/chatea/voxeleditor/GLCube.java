@@ -8,16 +8,34 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-public class GLCube implements IPickable {
+public class GLCube implements IPickable, IRenderable {
 
     public static final float EDGE_LENGTH = 1.0f;
 
     public static final int NONE = -1;
+    /**
+     * X+
+     */
     public static final int FRONT = 0;
+    /**
+     * Z+
+     */
     public static final int TOP = 1;
+    /**
+     * Y-
+     */
     public static final int LEFT = 2;
+    /**
+     * Z-
+     */
     public static final int BOTTOM = 3;
+    /**
+     * Y+
+     */
     public static final int RIGHT = 4;
+    /**
+     * X-
+     */
     public static final int BACK = 5;
 
     private FloatBuffer vertexBuffer;
@@ -99,8 +117,6 @@ public class GLCube implements IPickable {
             mCoords[i + 2] = mCoords[i + 2] - mCenter[2] + z;
         }
 
-        Log.d("TAG", "mCoords[0, 1, 2] = (" + mCoords[0] + "," + mCoords[1] + "," + mCoords[2] + ")");
-
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(
                 // (# of coordinate values * 4 bytes per float)
@@ -122,16 +138,15 @@ public class GLCube implements IPickable {
         mColor[3] = a;
     }
 
+    @Override
     public void draw(float[] mvpMatrix) {
+        Log.d("TAG", "Start draw GLCube");
         GLES20.glUseProgram(mProgram);
 
         int mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         GLES20.glEnableVertexAttribArray(mPositionHandle);
         GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
                 GLES20.GL_FLOAT, false, 3 * 4, vertexBuffer);
-
-        Log.d("TAG", "vertexBuffer[0, 1, 2] = (" + vertexBuffer.get(0) + "," + vertexBuffer.get(1)
-                + "," + vertexBuffer.get(2) + ")");
 
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
@@ -220,6 +235,10 @@ public class GLCube implements IPickable {
             return true;
         }
         return false;
+    }
+
+    public float[] getCenter() {
+        return mCenter;
     }
 
     public int getLastPickedPlane() {
