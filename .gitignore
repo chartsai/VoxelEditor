@@ -25,3 +25,12 @@ proguard/
 
 # Log Files
 *.log
+
+# AS local config file
+/.idea/workspace.xml
+/.idea/libraries
+/.idea/tasks.xml
+/.idea/dictionaries
+
+# Mac preview file
+.DS_Store
