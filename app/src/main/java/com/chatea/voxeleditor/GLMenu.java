@@ -49,6 +49,8 @@ public class GLMenu {
 
     private float mX;
     private float mY;
+    private float mWidth;
+    private float mHeight;
 
     private int[] mTextureId;
 
@@ -61,6 +63,8 @@ public class GLMenu {
 
         mX = x;
         mY = y;
+        mWidth = width;
+        mHeight = height;
     }
 
     private void setup(Bitmap bitmap, float width, float height) {
@@ -84,11 +88,6 @@ public class GLMenu {
     private void setupSquare(float width, float height) {
         // We have create the vertices of our view.
         float[] vertices = {
-//                0.0f, 0.0f, 0.0f, // top-left
-//                0.0f, 0.0f, -height, // bottom-left
-//                0.0f, width, -height, // bottom-right
-//                0.0f, width, 0.0f, // top-right
-
                 0.0f, 0.0f, 0.0f, // top-left
                 0.0f, -height, 0.0f, // bottom-left
                 width, -height, 0.0f, // bottom-right
@@ -147,13 +146,29 @@ public class GLMenu {
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
     }
 
+    public float getX() {
+        return mX;
+    }
+
+    public float getY() {
+        return mY;
+    }
+
+    public float getWidth() {
+        return mWidth;
+    }
+
+    public float getHeight() {
+        return mHeight;
+    }
+
     public void draw(float[] vpMatrix, float alpha) {
 
         float[] mvpMatrix = new float[16];
 
         float[] moduleMatrix = new float[16];
         Matrix.setIdentityM(moduleMatrix, 0);
-        Matrix.translateM(moduleMatrix, 0, mX, -mY, 0);
+        Matrix.translateM(moduleMatrix, 0, mX, mY, 0);
 
         Matrix.multiplyMM(mvpMatrix, 0, vpMatrix, 0, moduleMatrix, 0);
 

@@ -21,6 +21,17 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     private EditorGLSurfaceView mGLSurfaceView;
     private EditorRenderer mRenderer;
 
+    // control logic
+    public enum ControlMode {
+        None, // init state
+        AddBlock,
+        BreakBlock,
+        Move,
+        Rotate
+    }
+
+    private ControlMode mMode = ControlMode.None;
+
     // camera related
     /**
      * Will be set from Render.
@@ -206,14 +217,6 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         mCamera.upZ = mTheta % 360 < 180 ? 1.0f : -1.0f;
     }
 
-    public float getProjectionWidth() {
-        return mProjectionWidth;
-    }
-
-    public float getProjectionHeight() {
-        return mProjectionHeight;
-    }
-
     @Override
     public void createRenderObject() {
         mVoxelPanel = new VoxelPanel(this, 10, 10, 10);
@@ -229,7 +232,10 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
         float ratio = (float) viewPort.width / viewPort.height;
         Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 1, viewDepth);
 
-        Matrix.orthoM(mMenuProjectionMatrix, 0, -ratio, ratio, -1, 1, -1, 1);
+        Matrix.orthoM(mMenuProjectionMatrix, 0,
+                0, MenuPanel.MENU_PANEL_WIDTH,
+                0, MenuPanel.MENU_PANEL_HEIGHT,
+                -1, 1);
 
         mProjectionWidth = 2 * ratio;
         mProjectionHeight = 2 * 1;
@@ -258,5 +264,9 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
             return true;
         }
+    }
+
+    public void setMode(ControlMode mode) {
+        mMode = mode;
     }
 }

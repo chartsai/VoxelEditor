@@ -8,6 +8,9 @@ import java.util.Set;
 
 public class MenuPanel implements IRenderable {
 
+    public static final float MENU_PANEL_WIDTH = 1080f;
+    public static final float MENU_PANEL_HEIGHT = 1920f;
+
     /**
      * pick interval, unit is millisecond.
      */
@@ -30,18 +33,15 @@ public class MenuPanel implements IRenderable {
 
         mMenus = new HashSet<>();
 
-        float projectWidth = core.getProjectionWidth();
+        float projectWidth = MENU_PANEL_WIDTH;
         float width = projectWidth * 0.2f;
         float margin = width * 0.05f;
         float innerWidth = width - 2 * margin;
-        float x = projectWidth / 2 - width;
-        float y = core.getProjectionHeight() / 2 - width;
+        float x = MENU_PANEL_WIDTH - width;
+        float y = width;
 
-//        GLMenu sampleMenu = new GLMenu(context, R.drawable.test,
-//                x - margin, y - margin, innerWidth, innerWidth);
-
-        GLMenu sampleMenu = new GLMenu(context, R.drawable.test,
-                0f, 0f, 0.25f, 0.25f);
+        GLClickableMenu sampleMenu = new GLClickableMenu(context, R.drawable.test,
+                x + margin, y - margin, innerWidth, innerWidth);
 
         mMenus.add(sampleMenu);
     }
@@ -54,7 +54,7 @@ public class MenuPanel implements IRenderable {
     }
 
     public void pick(float x, float y) {
-
+        // TODO implement this.
     }
 
 
