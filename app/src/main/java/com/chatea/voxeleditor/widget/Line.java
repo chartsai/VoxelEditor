@@ -1,7 +1,5 @@
 package com.chatea.voxeleditor.widget;
 
-import android.util.Log;
-
 import com.chatea.voxeleditor.shader.GLLineShader;
 
 public class Line {
@@ -55,7 +53,6 @@ public class Line {
     }
 
     public void draw(float[] vpMatrix, GLLineShader shader) {
-        Log.d("TAG", "line is been draw");
         shader.draw(vpMatrix, mStart, mEnd, mColor, mWidth);
     }
 }

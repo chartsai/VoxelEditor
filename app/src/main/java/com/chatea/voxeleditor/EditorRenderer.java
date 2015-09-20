@@ -37,11 +37,10 @@ public class EditorRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
+        GLES20.glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
         // setup back cull function.
         GLES20.glEnable(GLES20.GL_CULL_FACE);
-        GLES20.glDisable(GLES20.GL_CULL_FACE);
         GLES20.glFrontFace(GLES20.GL_CCW);
         GLES20.glCullFace(GLES20.GL_BACK);
 

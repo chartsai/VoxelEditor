@@ -1,7 +1,5 @@
 package com.chatea.voxeleditor;
 
-import android.util.Log;
-
 import com.chatea.voxeleditor.shader.GLCubeShader;
 import com.chatea.voxeleditor.shader.GLLineShader;
 import com.chatea.voxeleditor.widget.Cube;
@@ -39,7 +37,6 @@ public class VoxelPanel implements IRenderable {
         mZSize = zSize;
 
         mCubes = new HashSet<>(xSize * ySize * zSize);
-        mLines = new HashSet<>();
 
         // Panel should has a started Cube at the center.
         Cube cube = new Cube();
@@ -47,14 +44,19 @@ public class VoxelPanel implements IRenderable {
         cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         mCubes.add(cube);
 
+        setLines();
+
         mCubeShader = new GLCubeShader();
         mLineShader = new GLLineShader();
     }
 
+    private void setLines() {
+        mLines = new HashSet<>();
+        // TODO draw lines in the world.
+    }
+
     @Override
     public void draw(float[] vpMatrix) {
-        // TODO draw coordinate lines.
-
         for (Cube cube: mCubes) {
             cube.draw(vpMatrix, mCubeShader);
         }
@@ -101,7 +103,6 @@ public class VoxelPanel implements IRenderable {
      * @param z
      */
     public void addCube(float x, float y, float z, float[] color) {
-        Log.d("TAG", "add cube at (" + x + "," + y + "," + z + ")");
         Cube cube = new Cube();
         cube.setCenter((int) x, (int) y, (int) z);
         cube.setColor(color[0], color[1], color[2], color[3]);
