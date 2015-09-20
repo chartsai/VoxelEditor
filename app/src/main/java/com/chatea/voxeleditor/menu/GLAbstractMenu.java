@@ -14,7 +14,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-public abstract class GLAbstractMenu implements GLMenu {
+public abstract class GLAbstractMenu implements GLRenderableMenu {
 
     private static final String vertexShaderCode =
             "uniform mat4 uMVPMatrix;" +
@@ -164,6 +164,7 @@ public abstract class GLAbstractMenu implements GLMenu {
         return mHeight;
     }
 
+    @Override
     public void draw(float[] vpMatrix, float alpha) {
 
         float[] mvpMatrix = new float[16];
