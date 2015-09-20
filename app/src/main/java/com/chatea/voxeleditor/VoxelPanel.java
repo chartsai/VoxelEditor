@@ -100,11 +100,11 @@ public class VoxelPanel implements IRenderable {
      * @param y
      * @param z
      */
-    public void addCube(float x, float y, float z) {
+    public void addCube(float x, float y, float z, float[] color) {
         Log.d("TAG", "add cube at (" + x + "," + y + "," + z + ")");
         Cube cube = new Cube();
         cube.setCenter((int) x, (int) y, (int) z);
-        cube.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        cube.setColor(color[0], color[1], color[2], color[3]);
 
         mCubes.add(cube);
     }

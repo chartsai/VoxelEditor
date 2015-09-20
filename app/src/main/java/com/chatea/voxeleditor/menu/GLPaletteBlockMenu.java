@@ -121,6 +121,10 @@ public class GLPaletteBlockMenu implements GLRenderableMenu {
         return mHeight;
     }
 
+    public float[] getColor() {
+        return new float[] {mR, mG, mB, 1.0f};
+    }
+
     @Override
     public void draw(float[] vpMatrix, float alpha) {
         GLES20.glUseProgram(mProgram);

@@ -39,6 +39,8 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
     private ModeActions mMoveActions;
     private ModeActions mBreakActions;
 
+    private float[] mCurrentPaintColor;
+
     // camera related
     /**
      * Will be set from Render.
@@ -155,27 +157,27 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
 
                 switch (cube.getLastPickedPlane()) {
                     case Cube.BACK: {
-                        mVoxelPanel.addCube(pickedX - 1, pickedY, pickedZ);
+                        mVoxelPanel.addCube(pickedX - 1, pickedY, pickedZ, mCurrentPaintColor);
                         return;
                     }
                     case Cube.FRONT: {
-                        mVoxelPanel.addCube(pickedX + 1, pickedY, pickedZ);
+                        mVoxelPanel.addCube(pickedX + 1, pickedY, pickedZ, mCurrentPaintColor);
                         return;
                     }
                     case Cube.LEFT: {
-                        mVoxelPanel.addCube(pickedX, pickedY - 1, pickedZ);
+                        mVoxelPanel.addCube(pickedX, pickedY - 1, pickedZ, mCurrentPaintColor);
                         return;
                     }
                     case Cube.RIGHT: {
-                        mVoxelPanel.addCube(pickedX, pickedY + 1, pickedZ);
+                        mVoxelPanel.addCube(pickedX, pickedY + 1, pickedZ, mCurrentPaintColor);
                         return;
                     }
                     case Cube.TOP: {
-                        mVoxelPanel.addCube(pickedX, pickedY, pickedZ + 1);
+                        mVoxelPanel.addCube(pickedX, pickedY, pickedZ + 1, mCurrentPaintColor);;
                         return;
                     }
                     case Cube.BOTTOM: {
-                        mVoxelPanel.addCube(pickedX, pickedY, pickedZ - 1);
+                        mVoxelPanel.addCube(pickedX, pickedY, pickedZ - 1, mCurrentPaintColor);
                         return;
                     }
                     default:
@@ -498,5 +500,10 @@ public class EditorCore implements EditorRenderer.RenderDataMaintainer {
                 mCurrentActions = mNoActions;
                 break;
         }
+    }
+
+    public void setPaintColor(float r, float g, float b) {
+        // alpha always is 1.0f.
+        mCurrentPaintColor = new float[] {r, g, b, 1.0f};
     }
 }

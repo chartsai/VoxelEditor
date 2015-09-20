@@ -112,110 +112,130 @@ public class MenuPanel implements IRenderable {
         float yOffset = 2 * margin;
         float innerWidth = width - 2 * margin;
 
+        final Set<GLPaletteBlockMenu> paletteBlocks = new HashSet<>(6 * 3);
+
         // row 1
-        {
-            GLPaletteBlockMenu whiteBlock;
-            GLPaletteBlockMenu redBlock;
-            GLPaletteBlockMenu greenBlock;
-            GLPaletteBlockMenu blueBlock;
-            GLPaletteBlockMenu yellowBlock;
-            GLPaletteBlockMenu purpleBlock;
+        GLPaletteBlockMenu whiteBlock;
+        GLPaletteBlockMenu redBlock;
+        GLPaletteBlockMenu greenBlock;
+        GLPaletteBlockMenu blueBlock;
+        GLPaletteBlockMenu yellowBlock;
+        GLPaletteBlockMenu purpleBlock;
 
-            whiteBlock = new GLPaletteBlockMenu(margin, yOffset + width - margin,
-                    innerWidth, innerWidth, 1.0f, 1.0f, 1.0f);
+        whiteBlock = new GLPaletteBlockMenu(margin, yOffset + width - margin,
+                innerWidth, innerWidth, 1.0f, 1.0f, 1.0f);
 
-            redBlock = new GLPaletteBlockMenu(width + margin, yOffset + width - margin,
-                    innerWidth, innerWidth, 1.0f, 0.0f, 0.0f);
+        redBlock = new GLPaletteBlockMenu(width + margin, yOffset + width - margin,
+                innerWidth, innerWidth, 1.0f, 0.0f, 0.0f);
 
-            greenBlock = new GLPaletteBlockMenu(2 * width + margin, yOffset + width - margin,
-                    innerWidth, innerWidth, 0.0f, 1.0f, 0.0f);
+        greenBlock = new GLPaletteBlockMenu(2 * width + margin, yOffset + width - margin,
+                innerWidth, innerWidth, 0.0f, 1.0f, 0.0f);
 
-            blueBlock = new GLPaletteBlockMenu(3 * width + margin, yOffset + width - margin,
-                    innerWidth, innerWidth, 0.0f, 0.0f, 1.0f);
+        blueBlock = new GLPaletteBlockMenu(3 * width + margin, yOffset + width - margin,
+                innerWidth, innerWidth, 0.0f, 0.0f, 1.0f);
 
-            yellowBlock = new GLPaletteBlockMenu(4 * width + margin, yOffset + width - margin,
-                    innerWidth, innerWidth, 1.0f, 1.0f, 0.0f);
+        yellowBlock = new GLPaletteBlockMenu(4 * width + margin, yOffset + width - margin,
+                innerWidth, innerWidth, 1.0f, 1.0f, 0.0f);
 
-            purpleBlock = new GLPaletteBlockMenu(5 * width + margin, yOffset + width - margin,
-                    innerWidth, innerWidth, 1.0f, 0.0f, 1.0f);
+        purpleBlock = new GLPaletteBlockMenu(5 * width + margin, yOffset + width - margin,
+                innerWidth, innerWidth, 1.0f, 0.0f, 1.0f);
 
-            mMenus.add(whiteBlock);
-            mMenus.add(redBlock);
-            mMenus.add(greenBlock);
-            mMenus.add(blueBlock);
-            mMenus.add(yellowBlock);
-            mMenus.add(purpleBlock);
+        paletteBlocks.add(whiteBlock);
+        paletteBlocks.add(redBlock);
+        paletteBlocks.add(greenBlock);
+        paletteBlocks.add(blueBlock);
+        paletteBlocks.add(yellowBlock);
+        paletteBlocks.add(purpleBlock);
+
+        // row 2
+        GLPaletteBlockMenu grayBlock;
+        GLPaletteBlockMenu ligthBlueBlock;
+        GLPaletteBlockMenu paletteBlock8;
+        GLPaletteBlockMenu paletteBlock9;
+        GLPaletteBlockMenu pinkBlock;
+        GLPaletteBlockMenu paletteBlock11;
+
+        grayBlock = new GLPaletteBlockMenu(margin, yOffset + 2 * width - margin,
+                innerWidth, innerWidth, 0.5f, 0.5f, 0.5f);
+
+        ligthBlueBlock = new GLPaletteBlockMenu(width + margin, yOffset + 2 * width - margin,
+                innerWidth, innerWidth, 0.0f, 1.0f, 1.0f);
+
+        paletteBlock8 = new GLPaletteBlockMenu(2 * width + margin, yOffset + 2 * width - margin,
+                innerWidth, innerWidth, 1.0f, 0.5f, 0.0f);
+
+        paletteBlock9 = new GLPaletteBlockMenu(3 * width + margin, yOffset + 2 * width - margin,
+                innerWidth, innerWidth, 0.5f, 0.0f, 1.0f);
+
+        pinkBlock = new GLPaletteBlockMenu(4 * width + margin, yOffset + 2 * width - margin,
+                innerWidth, innerWidth, 1.0f, 0.25f, 0.5f);
+
+        paletteBlock11 = new GLPaletteBlockMenu(5 * width + margin, yOffset + 2 * width - margin,
+                innerWidth, innerWidth, 0.5f, 0.25f, 0.25f);
+
+        paletteBlocks.add(grayBlock);
+        paletteBlocks.add(ligthBlueBlock);
+        paletteBlocks.add(paletteBlock8);
+        paletteBlocks.add(paletteBlock9);
+        paletteBlocks.add(pinkBlock);
+        paletteBlocks.add(paletteBlock11);
+
+        // row 3
+        GLPaletteBlockMenu blackBlock;
+        GLPaletteBlockMenu paletteBlock13;
+        GLPaletteBlockMenu paletteBlock14;
+        GLPaletteBlockMenu paletteBlock15;
+        GLPaletteBlockMenu paletteBlock16;
+        GLPaletteBlockMenu paletteBlock17;
+
+        blackBlock = new GLPaletteBlockMenu(margin, yOffset + 3 * width - margin,
+                innerWidth, innerWidth, 0.0f, 0.0f, 0.0f);
+
+        paletteBlock13 = new GLPaletteBlockMenu(width + margin, yOffset + 3 * width - margin,
+                innerWidth, innerWidth, 0.5f, 1.0f, 1.0f);
+
+        paletteBlock14 = new GLPaletteBlockMenu(2 * width + margin, yOffset + 3 * width - margin,
+                innerWidth, innerWidth, 0.75f, 0.75f, 1.0f);
+
+        paletteBlock15 = new GLPaletteBlockMenu(3 * width + margin, yOffset + 3 * width - margin,
+                innerWidth, innerWidth, 0.0f, 0.5f, 0.75f);
+
+        paletteBlock16 = new GLPaletteBlockMenu(4 * width + margin, yOffset + 3 * width - margin,
+                innerWidth, innerWidth, 0.75f, 0.75f, 0.75f);
+
+        paletteBlock17 = new GLPaletteBlockMenu(5 * width + margin, yOffset + 3 * width - margin,
+                innerWidth, innerWidth, 0.25f, 0.25f, 0.25f);
+
+        paletteBlocks.add(blackBlock);
+        paletteBlocks.add(paletteBlock13);
+        paletteBlocks.add(paletteBlock14);
+        paletteBlocks.add(paletteBlock15);
+        paletteBlocks.add(paletteBlock16);
+        paletteBlocks.add(paletteBlock17);
+
+
+        GLPaletteBlockMenu.OnSelectCallback callback = new GLPaletteBlockMenu.OnSelectCallback() {
+            @Override
+            public void onSelected(GLPaletteBlockMenu menu) {
+                // disable all others and select self.
+                for (GLPaletteBlockMenu block: paletteBlocks) {
+                    block.setSelection(false);
+                }
+                menu.setSelection(true);
+
+                float[] color = menu.getColor();
+                mCore.setPaintColor(color[0], color[1], color[2]);
+            }
+        };
+
+        for (GLPaletteBlockMenu block: paletteBlocks) {
+            block.setOnSelectCallback(callback);
         }
 
-        {
-            // row 2
-            GLPaletteBlockMenu grayBlock;
-            GLPaletteBlockMenu ligthBlueBlock;
-            GLPaletteBlockMenu paletteBlock8;
-            GLPaletteBlockMenu paletteBlock9;
-            GLPaletteBlockMenu pinkBlock;
-            GLPaletteBlockMenu paletteBlock11;
+        mMenus.addAll(paletteBlocks);
 
-            grayBlock = new GLPaletteBlockMenu(margin, yOffset + 2 * width - margin,
-                    innerWidth, innerWidth, 0.5f, 0.5f, 0.5f);
-
-            ligthBlueBlock = new GLPaletteBlockMenu(width + margin, yOffset + 2 * width - margin,
-                    innerWidth, innerWidth, 0.0f, 1.0f, 1.0f);
-
-            paletteBlock8 = new GLPaletteBlockMenu(2 * width + margin, yOffset + 2 * width - margin,
-                    innerWidth, innerWidth, 1.0f, 0.5f, 0.0f);
-
-            paletteBlock9 = new GLPaletteBlockMenu(3 * width + margin, yOffset + 2 * width - margin,
-                    innerWidth, innerWidth, 0.5f, 0.0f, 1.0f);
-
-            pinkBlock = new GLPaletteBlockMenu(4 * width + margin, yOffset + 2 * width - margin,
-                    innerWidth, innerWidth, 1.0f, 0.25f, 0.5f);
-
-            paletteBlock11 = new GLPaletteBlockMenu(5 * width + margin, yOffset + 2 * width - margin,
-                    innerWidth, innerWidth, 0.5f, 0.25f, 0.25f);
-
-            mMenus.add(grayBlock);
-            mMenus.add(ligthBlueBlock);
-            mMenus.add(paletteBlock8);
-            mMenus.add(paletteBlock9);
-            mMenus.add(pinkBlock);
-            mMenus.add(paletteBlock11);
-        }
-
-        {
-            // row 3
-            GLPaletteBlockMenu blackBlock;
-            GLPaletteBlockMenu paletteBlock13;
-            GLPaletteBlockMenu paletteBlock14;
-            GLPaletteBlockMenu paletteBlock15;
-            GLPaletteBlockMenu paletteBlock16;
-            GLPaletteBlockMenu paletteBlock17;
-
-            blackBlock = new GLPaletteBlockMenu(margin, yOffset + 3 * width - margin,
-                    innerWidth, innerWidth, 0.0f, 0.0f, 0.0f);
-
-            paletteBlock13 = new GLPaletteBlockMenu(width + margin, yOffset + 3 * width - margin,
-                    innerWidth, innerWidth, 0.5f, 1.0f, 1.0f);
-
-            paletteBlock14 = new GLPaletteBlockMenu(2 * width + margin, yOffset + 3 * width - margin,
-                    innerWidth, innerWidth, 0.75f, 0.75f, 1.0f);
-
-            paletteBlock15 = new GLPaletteBlockMenu(3 * width + margin, yOffset + 3 * width - margin,
-                    innerWidth, innerWidth, 0.0f, 0.5f, 0.75f);
-
-            paletteBlock16 = new GLPaletteBlockMenu(4 * width + margin, yOffset + 3 * width - margin,
-                    innerWidth, innerWidth, 0.75f, 0.75f, 0.75f);
-
-            paletteBlock17 = new GLPaletteBlockMenu(5 * width + margin, yOffset + 3 * width - margin,
-                    innerWidth, innerWidth, 0.25f, 0.25f, 0.25f);
-
-            mMenus.add(blackBlock);
-            mMenus.add(paletteBlock13);
-            mMenus.add(paletteBlock14);
-            mMenus.add(paletteBlock15);
-            mMenus.add(paletteBlock16);
-            mMenus.add(paletteBlock17);
-        }
+        // default select whiteBlock
+        whiteBlock.select();
     }
 
     @Override
