@@ -1,6 +1,6 @@
 package com.chatea.voxeleditor;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public interface IPickable {
     /**
